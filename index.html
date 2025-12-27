@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BreakVerse</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+/* ================= RESET ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* ================= BACKGROUND FLOATING BLOCKS ================= */
+body {
+  background: linear-gradient(180deg, #7dd3ff, #b8ecff);
+  overflow: hidden;
+  color: #033;
+}
+
+.block {
+  position: absolute;
+  background: rgba(255,255,255,0.5);
+  border-radius: 10px;
+  animation: float 12s infinite linear;
+}
+
+@keyframes float {
+  from { transform: translateY(100vh); }
+  to { transform: translateY(-120px); }
+}
+
+/* ================= LOGIN ================= */
+#login {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-card {
+  backdrop-filter: blur(14px);
+  background: rgba(255,255,255,0.35);
+  border-radius: 20px;
+  padding: 30px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.login-card h1 {
+  color: #0077cc;
+  margin-bottom: 10px;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  margin: 8px 0;
+}
+
+.login-btn {
+  margin-top: 12px;
+  padding: 12px;
+  background: linear-gradient(180deg,#8aff8a,#3bd36b);
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: bold;
+  transform: translateY(0);
+  transition: transform 0.2s;
+}
+
+.login-btn:hover {
+  transform: translateY(-4px);
+}
+
+function enterBreakVerse(){
+  const usernameInput = document.getElementById("username");
+  const avatarInput = document.getElementById("avatar");
+
+  if(!usernameInput.value) {
+    alert("Please enter a username!");
+    return;
+  }
+
+  user = {
+    name: usernameInput.value,
+    color: avatarInput.value || "#7dd3ff"
+  };
+
+  localStorage.setItem("user", JSON.stringify(user));
+
+  document.getElementById("login").style.display = "none";
+  document.getElementById("app").style.display = "block";
+
+  render();
+}
+
+/* ================= APP ================= */
+#app {
+  display: none;
+  height: 100vh;
+  background: #e9fbff;
+}
+
+/* ================= SIDEBAR (WII U STYLE) ================= */
+.sidebar {
+  width: 80px;
+  background: linear-gradient(180deg,#00aaff,#0077cc);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+}
+
+.tab {
+  width: 60px;
+  height: 60px;
+  background: #ffffffcc;
+  border-radius: 14px;
+  margin: 10px 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.tab:hover {
+  transform: scale(1.1);
+}
+
+/* ================= CONTENT ================= */
+.content {
+  flex: 1;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* ================= MIIVERSE CHAT ================= */
+.post {
+  background: white;
+  border-radius: 16px;
+  padding: 10px;
+  margin-bottom: 10px;
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.post-header {
+  display: flex;
+  align-items: center;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #7dd3ff;
+  margin-right: 10px;
+}
+
+.yeah {
+  cursor: pointer;
+  color: #00aa00;
+  font-weight: bold;
+}
+
+.happy {
+  animation: pop 0.4s;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.5); }
+  100% { transform: scale(1); }
+}
+
+/* ================= DRAWING ================= */
+canvas {
+  border: 2px solid #00aaff;
+  border-radius: 12px;
+}
+
+/* ================= INFO ================= */
+.info {
+  background: linear-gradient(180deg,#7dd3ff,#b8ecff);
+  padding: 20px;
+  border-radius: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- FLOATING BLOCKS -->
+<script>
+for(let i=0;i<20;i++){
+  let b=document.createElement("div");
+  b.className="block";
+  b.style.width=b.style.height=20+Math.random()*60+"px";
+  b.style.left=Math.random()*100+"%";
+  b.style.animationDuration=8+Math.random()*10+"s";
+  document.body.appendChild(b);
+}
+</script>
+
+<!-- LOGIN -->
+<div id="login">
+  <div class="login-card">
+    <h1>BreakVerse</h1>
+    <input id="username" placeholder="Username">
+    <input id="avatar" placeholder="Avatar color (blue/green/yellow)">
+    <div class="login-btn" onclick="enterBreakVerse()">Enter BreakVerse</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div style="display:flex;height:100%;">
+    <div class="sidebar">
+      <div class="tab" onclick="show('chat')">💬</div>
+      <div class="tab" onclick="show('draw')">🎨</div>
+      <div class="tab" onclick="show('info')">ℹ️</div>
+    </div>
+
+    <div class="content">
+      <!-- CHAT -->
+      <div id="chat" class="screen active">
+        <div id="posts"></div>
+        <input id="msg" placeholder="Post something Miiverse-style">
+        <button onclick="post()">Post</button>
+      </div>
+
+      <!-- DRAW -->
+      <div id="draw" class="screen">
+        <canvas id="canvas" width="300" height="300"></canvas><br>
+        <button onclick="saveDrawing()">Post Drawing</button>
+      </div>
+
+      <!-- INFO -->
+      <div id="info" class="screen">
+        <div class="info">
+          <h2>Welcome to BreakVerse</h2>
+          <p>
+            Welcome to BreakVerse and how it began.<br><br>
+            This all started when I first got my Wii U.  
+            I modded it and got Nimbus (Pretendo).  
+            I was thinking what if I can do this.<br><br>
+            As of November 12, 2025 I started coding this very website with UI changes.  
+            Then on December 26, 2025 I made the BreakVerse Discord server.<br><br>
+            I gladly thank you for trying this out.  
+            That is the story of BreakVerse.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let user = JSON.parse(localStorage.getItem("user"));
+let posts = JSON.parse(localStorage.getItem("posts")) || [];
+
+function enterBreakVerse(){
+  user={
+    name:username.value,
+    color:avatar.value
+  };
+  localStorage.setItem("user",JSON.stringify(user));
+  document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+  render();
+}
+
+if(user){
+  document.getElementById("login").style.display = "none";
+document.getElementById("app").style.display = "block";
+  render();
+}
+
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function post(content){
+  posts.unshift({
+    user:user,
+    text: msg.value,
+    yeahs:0
+  });
+  msg.value="";
+  save();
+}
+
+function render(){
+  postsEl=posts.map((p,i)=>`
+    <div class="post">
+      <div class="post-header">
+        <div class="avatar" style="background:${p.user.color}"></div>
+        <b>${p.user.name}</b>
+      </div>
+      <p>${p.text||"<i>Drawing post</i>"}</p>
+      <span class="yeah" onclick="yeah(${i})">😊 Yeah! (${p.yeahs})</span>
+    </div>
+  `).join("");
+  document.getElementById("posts").innerHTML=postsEl;
+}
+
+function yeah(i){
+  posts[i].yeahs++;
+  save();
+}
+
+function save(){
+  localStorage.setItem("posts",JSON.stringify(posts));
+  render();
+}
+
+/* DRAWING */
+const c=document.getElementById("canvas");
+const ctx=c.getContext("2d");
+let draw=false;
+c.onmousedown=()=>draw=true;
+c.onmouseup=()=>draw=false;
+c.onmousemove=e=>{
+  if(draw){
+    ctx.fillRect(e.offsetX,e.offsetY,4,4);
+  }
+};
+
+function saveDrawing(){
+  posts.unshift({user:user,text:"",yeahs:0});
+  save();
+}
+</script>
+
+</body>
+</html>
